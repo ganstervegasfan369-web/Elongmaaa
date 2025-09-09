@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Elongma Meme Coin Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(to top, #111, #222);
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+    #gameCanvas {
+      display: block;
+      margin: 20px auto;
+      background: url("https://i.ibb.co/4Sbt0ts/stars-bg.png");
+      background-size: cover;
+      border: 3px solid gold;
+      border-radius: 15px;
+    }
+    #score {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚀 Elongma Meme Coin Runner 🚀</h1>
+  <p>Press SPACE or TAP to jump!</p>
+  <canvas id="gameCanvas" width="700" height="300"></canvas>
+  <div id="score">Score: 0</div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Player logo
+    const playerImg = new Image();
+    playerImg.src = "https://black-labour-buzzard-448.mypinata.cloud/ipfs/bafybeiddmwvy45g4zsxgngsiihxq7tztvjenjkt5utrdgwla5vhxnihmp4";
+
+    const player = {
+      x: 50,
+      y: 200,
+      width: 60,
+      height: 60,
+      dy: 0,
+      gravity: 0.6,
+      jump: -12,
+      grounded: true
+    };
+
+    // Enemies
+    const enemies = [];
+    let frame = 0;
+    let score = 0;
+
+    // Sounds
+    const jumpSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+    const crashSound = new Audio("https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
+
+    function spawnEnemy() {
+      enemies.push({
+        x: canvas.width,
+        y: 240,
+        width: 40,
+        height: 40,
+        speed: 5
+      });
+    }
+
+    function drawPlayer() {
+      ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+    }
+
+    function drawEnemies() {
+      ctx.fillStyle = "red";
+      enemies.forEach(enemy => {
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+      });
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Player physics
+      player.y += player.dy;
+      if (player.y + player.height < canvas.height - 20) {
+        player.dy += player.gravity;
+        player.grounded = false;
+      } else {
+        player.dy = 0;
+        player.y = canvas.height - player.height - 20;
+        player.grounded = true;
+      }
+
+      drawPlayer();
+
+      // Enemies
+      enemies.forEach((enemy, index) => {
+        enemy.x -= enemy.speed;
+        ctx.fillStyle = "orange";
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+        // Collision
+        if (
+          player.x < enemy.x + enemy.width &&
+          player.x + player.width > enemy.x &&
+          player.y < enemy.y + enemy.height &&
+          player.y + player.height > enemy.y
+        ) {
+          crashSound.play();
+          alert("💀 Game Over! Your Score: " + score);
+          document.location.reload();
+        }
+
+        // Remove offscreen
+        if (enemy.x + enemy.width < 0) {
+          enemies.splice(index, 1);
+          score++;
+          document.getElementById("score").innerText = "Score: " + score;
+        }
+      });
+
+      // Spawn new enemy
+      if (frame % 100 === 0) {
+        spawnEnemy();
+      }
+
+      frame++;
+      requestAnimationFrame(update);
+    }
+
+    function jump() {
+      if (player.grounded) {
+        player.dy = player.jump;
+        jumpSound.play();
+      }
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space") jump();
+    });
+    document.add
